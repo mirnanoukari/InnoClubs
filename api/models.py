@@ -1,12 +1,14 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-from django.contrib.auth.models import AbstractUser, User
+from django.contrib.auth.models import AbstractUser
 
 
-class UserModel(models.Model):  # AbstractUser
+class User(AbstractUser):
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    email = models.EmailField(unique=True, primary_key=True)
+    first_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f'{self.user.username} Profile'
+        return f'{self.email} Profile'
