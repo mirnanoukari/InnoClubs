@@ -21,4 +21,6 @@ from . import views
 urlpatterns = [
     path('get_auth_url/', views.get_auth_url, name='get-auth-url'),
     path('microsoft/login/', views.OutlookLogin.as_view(), name='user-login'),
+
+    path('user_info/<str:email>/', views.UserInfoRUView.as_view(), name='user-info'),
 ]

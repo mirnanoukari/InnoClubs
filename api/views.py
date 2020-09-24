@@ -1,4 +1,3 @@
-from rest_framework import generics, mixins
 from django.shortcuts import render
 from urllib.parse import urlencode
 
@@ -7,10 +6,17 @@ from allauth.socialaccount.providers.oauth2.client import OAuth2Client
 from rest_auth.registration.serializers import SocialLoginSerializer
 from allauth.account.adapter import get_adapter
 from rest_auth.views import LoginView
+
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.mixins import ListModelMixin
+from rest_framework.exceptions import APIException
+
+from .serializers import RUUserInfoSerializer
 from .models import User
+from .permissions import IsOwnerOrReadOnly
 from InnoClubs import settings
 
 
@@ -31,6 +37,21 @@ class OutlookLogin(SocialLoginView):
 
     client_class = OAuth2Client
     queryset = ''
+
+
+class UserInfoRUView(RetrieveUpdateAPIView):  # ListModelMixin
+
+    serializer_class = RUUserInfoSerializer
+    permission_classes = [IsOwnerOrReadOnly]
+
+    def get_object(self):
+        for obj in User.objects.all():
+            if obj.email == self.kwargs['email']:
+                return obj
+        raise APIException(detail='There is no user with this email address')
+
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
 
 
 @api_view(['GET'])
