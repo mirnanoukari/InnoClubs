@@ -10,13 +10,13 @@ from rest_auth.views import LoginView
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from rest_framework.generics import RetrieveUpdateAPIView
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.exceptions import APIException
 
-from .serializers import RUUserInfoSerializer
-from .models import User
-from .permissions import IsOwnerOrReadOnly
+from .serializers import RUUserInfoSerializer, CreateClubSerializer
+from .models import User, Club
+from .permissions import IsOwnerOrReadOnly, IsAdmin
 from InnoClubs import settings
 
 
@@ -52,6 +52,18 @@ class UserInfoRUView(RetrieveUpdateAPIView):  # ListModelMixin
 
     def put(self, request, *args, **kwargs):
         return self.update(request, *args, **kwargs)
+
+
+class CreateClubView(CreateAPIView):
+
+    serializer_class = CreateClubSerializer
+    permission_classes = [IsAdmin]
+
+    def get_queryset(self):
+        return Club.objects.create()
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
 
 
 @api_view(['GET'])

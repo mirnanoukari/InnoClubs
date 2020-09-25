@@ -23,4 +23,10 @@ urlpatterns = [
     path('microsoft/login/', views.OutlookLogin.as_view(), name='user-login'),
 
     path('user_info/<str:email>/', views.UserInfoRUView.as_view(), name='user-info'),
+
+    path('create_club/', views.CreateClubView.as_view(), name='club-create')  # why all users are present after creation?
+    # get all clubs
+    # join club
+    # change header of the club
+    # retrieve, update and destroy club
 ]

@@ -30,3 +30,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.email} Profile'
+
+
+class Club(models.Model):
+
+    title = models.CharField(max_length=100, blank=False, unique=True)
+    description = models.TextField()
+    head_of_the_club = models.ForeignKey(User,
+                                         on_delete=models.CASCADE,
+                                         blank=False,
+                                         related_name='clubs')  # how to call Club model from User model
+    members = models.ManyToManyField(User)
+
+    def __str__(self):
+        return f'{self.title}'
