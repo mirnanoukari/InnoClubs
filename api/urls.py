@@ -22,11 +22,13 @@ urlpatterns = [
     path('get_auth_url/', views.get_auth_url, name='get-auth-url'),
     path('microsoft/login/', views.OutlookLogin.as_view(), name='user-login'),
 
-    path('user_info/<str:email>/', views.UserInfoRUView.as_view(), name='user-info'),
+    path('user_profile/', views.UserProfileRUDView.as_view(), name='user-profile'),  # {'email': 'user's email'} - params
 
-    path('create_club/', views.CreateClubView.as_view(), name='club-create')  # why all users are present after creation?
-    # get all clubs
-    # join club
-    # change header of the club
-    # retrieve, update and destroy club
+    path('create_club/', views.CreateClubView.as_view(), name='club-create'),
+    path('get_clubs/', views.ListClubsView.as_view(), name='clubs-view'),
+    path('get_club/', views.RUDClubView.as_view(), name='club-view'),  # {'title': 'title of the club'} - params
+    path('join_club/', views.JoinClubView.as_view(), name='join-club'),  # {'title': 'title of the club'} - params
+    path('leave_club/', views.LeaveClubView.as_view(), name='leave-club'),  # {'title': 'title of the club'} - params
+    path('change_club_header/', views.ChangeClubHeaderView.as_view(), name='change-club-header')  # {'title': 'title of the club',
+                                                                                                  #  'new_club_header': 'email of new club header'} - params
 ]

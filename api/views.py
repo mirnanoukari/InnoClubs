@@ -7,16 +7,17 @@ from rest_auth.registration.serializers import SocialLoginSerializer
 from allauth.account.adapter import get_adapter
 from rest_auth.views import LoginView
 
+from rest_framework import response, status
 from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView
-from rest_framework.mixins import ListModelMixin
+from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.exceptions import APIException
+from rest_framework.permissions import IsAuthenticated
 
-from .serializers import RUUserInfoSerializer, CreateClubSerializer
+from .serializers import RUDUserInfoSerializer, CreateClubSerializer, RetrieveClubsSerializer, JoinClubSerializer
 from .models import User, Club
-from .permissions import IsOwnerOrReadOnly, IsAdmin
+from .permissions import IsOwnerOrReadOnly, IsClubOwnerOrReadOnly, IsAdmin
 from InnoClubs import settings
 
 
@@ -39,31 +40,100 @@ class OutlookLogin(SocialLoginView):
     queryset = ''
 
 
-class UserInfoRUView(RetrieveUpdateAPIView):  # ListModelMixin
+class UserProfileRUDView(RetrieveUpdateDestroyAPIView):
 
-    serializer_class = RUUserInfoSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    serializer_class = RUDUserInfoSerializer
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
     def get_object(self):
         for obj in User.objects.all():
-            if obj.email == self.kwargs['email']:
+            if obj.email == self.request.query_params.get('email', None):
                 return obj
         raise APIException(detail='There is no user with this email address')
 
-    def put(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
+        self.kwargs['email'] = request.query_params.get('email', None)
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):  # update
+        self.kwargs['email'] = request.query_params.get('email', None)
         return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        self.kwargs['email'] = request.query_params.get('email', None)
+        self.destroy(request, *args, **kwargs)
+        return response.Response(data={'result': 'ok'}, status=status.HTTP_200_OK)
 
 
 class CreateClubView(CreateAPIView):
 
     serializer_class = CreateClubSerializer
-    permission_classes = [IsAdmin]
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def get_queryset(self):
         return Club.objects.create()
 
     def post(self, request, *args, **kwargs):
         return self.create(request, *args, **kwargs)
+
+
+class ListClubsView(ListAPIView):
+
+    serializer_class = RetrieveClubsSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Club.objects.all()
+
+
+class RUDClubView(RetrieveUpdateDestroyAPIView):
+
+    serializer_class = RetrieveClubsSerializer
+    permission_classes = [IsAuthenticated, IsClubOwnerOrReadOnly]
+    lookup_field = 'title'
+
+    def get_queryset(self):
+        return Club.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        return self.retrieve(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):  # update
+        self.kwargs['title'] = request.query_params.get('title', None)
+        return self.update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        self.destroy(request, *args, **kwargs)
+        return response.Response(data={'status': 'success'}, status=status.HTTP_200_OK)
+
+
+class JoinClubView(RetrieveUpdateAPIView):
+
+    serializer_class = JoinClubSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'title'
+
+    def get_queryset(self):
+        return Club.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        self.update(request, *args, **kwargs)
+        return response.Response(data={'status': 'success'}, status=status.HTTP_200_OK)
+
+
+class LeaveClubView(RetrieveUpdateDestroyAPIView):
+    pass
+
+
+class ChangeClubHeaderView(RetrieveUpdateAPIView):
+    pass
 
 
 @api_view(['GET'])

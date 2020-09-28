@@ -4,7 +4,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from .models import User, Club
 
 
-class RUUserInfoSerializer(serializers.ModelSerializer):
+class RUDUserInfoSerializer(serializers.ModelSerializer):
 
     # Items to validate
     first_name = serializers.CharField(max_length=100, allow_blank=True)
@@ -51,4 +51,40 @@ class CreateClubSerializer(serializers.ModelSerializer):
                     head_of_the_club=user)
         club.save()
         club.members.add(user)
+        return club
+
+
+class RetrieveClubsSerializer(serializers.ModelSerializer):
+
+    head_of_the_club = RUDUserInfoSerializer()
+    members = RUDUserInfoSerializer(many=True)
+
+    class Meta:
+        model = Club
+        fields = ['title',
+                  'description',
+                  'head_of_the_club',
+                  'members']
+
+
+class JoinClubSerializer(serializers.ModelSerializer):
+
+    title = serializers.CharField(max_length=100, allow_blank=False)
+
+    class Meta:
+        model = Club
+        fields = ['title']
+
+    def validate_title(self, value):
+        if not Club.objects.filter(title__iexact=value).count():
+            raise serializers.ValidationError('Title is incorrect')
+        return value
+
+    def update(self, instance, validated_data):
+        user = self.context['request'].user
+        club = Club.objects.filter(title__iexact=validated_data['title']).first()
+        if club.members.filter(email__iexact=user.email).count():
+            raise serializers.ValidationError('You have already joined this club')
+        club.members.add(user)
+        club.save()
         return club
