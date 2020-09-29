@@ -15,7 +15,7 @@ from rest_framework.generics import RetrieveUpdateAPIView, CreateAPIView, ListAP
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import IsAuthenticated
 
-from .serializers import RUDUserInfoSerializer, CreateClubSerializer, RetrieveClubsSerializer, JoinClubSerializer
+from .serializers import RUDUserInfoSerializer, CreateClubSerializer, RetrieveClubsSerializer, JoinClubSerializer, LeaveClubSerializer, ChangeClubHeaderSerializer
 from .models import User, Club
 from .permissions import IsOwnerOrReadOnly, IsClubOwnerOrReadOnly, IsAdmin
 from InnoClubs import settings
@@ -103,6 +103,10 @@ class RUDClubView(RetrieveUpdateDestroyAPIView):
         self.kwargs['title'] = request.query_params.get('title', None)
         return self.update(request, *args, **kwargs)
 
+    def put(self, request, *args, **kwargs):  # update
+        self.kwargs['title'] = request.query_params.get('title', None)
+        return self.update(request, *args, **kwargs)
+
     def delete(self, request, *args, **kwargs):
         self.kwargs['title'] = request.query_params.get('title', None)
         self.destroy(request, *args, **kwargs)
@@ -128,12 +132,44 @@ class JoinClubView(RetrieveUpdateAPIView):
         return response.Response(data={'status': 'success'}, status=status.HTTP_200_OK)
 
 
-class LeaveClubView(RetrieveUpdateDestroyAPIView):
-    pass
+class LeaveClubView(RetrieveUpdateAPIView):
+
+    serializer_class = LeaveClubSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'title'
+
+    def get_queryset(self):
+        return Club.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        self.update(request, *args, **kwargs)
+        return response.Response(data={'status': 'success'}, status=status.HTTP_200_OK)
 
 
 class ChangeClubHeaderView(RetrieveUpdateAPIView):
-    pass
+
+    serializer_class = ChangeClubHeaderSerializer
+    permission_classes = [IsAuthenticated]
+    lookup_field = 'title'
+
+    def get_queryset(self):
+        return Club.objects.all()
+
+    def get(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        self.kwargs['head_of_the_club'] = request.query_params.get('head_of_the_club', None)
+        return self.retrieve(request, *args, **kwargs)
+
+    def put(self, request, *args, **kwargs):
+        self.kwargs['title'] = request.query_params.get('title', None)
+        self.kwargs['head_of_the_club'] = request.query_params.get('head_of_the_club', None)
+        self.update(request, *args, **kwargs)
+        return response.Response(data={'status': 'success'}, status=status.HTTP_200_OK)
 
 
 @api_view(['GET'])

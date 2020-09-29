@@ -30,5 +30,5 @@ urlpatterns = [
     path('join_club/', views.JoinClubView.as_view(), name='join-club'),  # {'title': 'title of the club'} - params
     path('leave_club/', views.LeaveClubView.as_view(), name='leave-club'),  # {'title': 'title of the club'} - params
     path('change_club_header/', views.ChangeClubHeaderView.as_view(), name='change-club-header')  # {'title': 'title of the club',
-                                                                                                  #  'new_club_header': 'email of new club header'} - params
+                                                                                                  #  'head_of_the_club': 'email of new club header'} - params
 ]
