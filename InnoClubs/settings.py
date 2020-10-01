@@ -10,7 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
+import os
+import socket
 from pathlib import Path
+from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -19,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '#41w6=4-4x-aezw7z8%a+vkf5!_5q+eod^0bdxokab8ew6$-=x'
+SECRET_KEY = config("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config("DEBUG", default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config("ALLOWED_HOSTS", default="127.0.0.1, localhost", cast=lambda x: x.split(", "))
 
 # Application definition
 
@@ -85,10 +89,7 @@ WSGI_APPLICATION = 'InnoClubs.wsgi.application'
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': config("DATABASE_URL", default="sqlite:///db.sqlite3", cast=dj_database_url.parse)
 }
 
 # Password validation
@@ -140,6 +141,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -147,6 +150,7 @@ REST_FRAMEWORK = {
         # 'rest_framework.permissions.IsAuthenticatedOrReadOnly',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.TokenAuthentication',
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication',
@@ -173,8 +177,8 @@ if DEBUG:
 
 # Data for Microsoft Authentication
 AUTHENTICATION_URL = 'https://login.microsoftonline.com/common/oauth2/v2.0/authorize/'
-CALLBACK_URL = 'http://localhost:8000/api/microsoft/login/'
-CLIENT_ID = '7ac353dd-9dd9-4a7e-b09d-b3ab48009e40'
+CALLBACK_URL = config('MICROSOFT_CALLBACK_URL')
+CLIENT_ID = config('MICROSOFT_CLIENT_ID')
 
 # Useful settings
 AUTH_USER_MODEL = 'api.User'

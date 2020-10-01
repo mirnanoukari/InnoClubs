@@ -19,16 +19,28 @@ from . import views
 
 
 urlpatterns = [
+
     path('get_auth_url/', views.get_auth_url, name='get-auth-url'),
     path('microsoft/login/', views.OutlookLogin.as_view(), name='user-login'),
 
-    path('user_profile/', views.UserProfileRUDView.as_view(), name='user-profile'),  # {'email': 'user's email'} - params
+    path('user_profile/', views.UserProfileRUDView.as_view(), name='user-profile'),
+
+    path('get_clubs/', views.ListClubsView.as_view(), name='clubs-view'),
+    path('get_club/', views.RUDClubView.as_view(), name='club-view'),
 
     path('create_club/', views.CreateClubView.as_view(), name='club-create'),
-    path('get_clubs/', views.ListClubsView.as_view(), name='clubs-view'),
-    path('get_club/', views.RUDClubView.as_view(), name='club-view'),  # {'title': 'title of the club'} - params
-    path('join_club/', views.JoinClubView.as_view(), name='join-club'),  # {'title': 'title of the club'} - params
-    path('leave_club/', views.LeaveClubView.as_view(), name='leave-club'),  # {'title': 'title of the club'} - params
-    path('change_club_header/', views.ChangeClubHeaderView.as_view(), name='change-club-header')  # {'title': 'title of the club',
-                                                                                                  #  'head_of_the_club': 'email of new club header'} - params
+    path('join_club/', views.JoinClubView.as_view(), name='join-club'),
+    path('leave_club/', views.LeaveClubView.as_view(), name='leave-club'),
+    path('change_club_header/', views.ChangeClubHeaderView.as_view(), name='change-club-header')
+
 ]
+
+
+"""
+- List of clubs for each user
+- Announcements (Get/Create/Update/Delete)
+- Events/Lessons for each club (Get/Create/Update/Delete)
+- Attendance
+- Student Affairs Office
+- Competitions
+"""

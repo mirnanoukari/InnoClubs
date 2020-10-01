@@ -5,7 +5,6 @@ from .models import User, Club
 
 
 class RUDUserInfoSerializer(serializers.ModelSerializer):
-
     # Items to validate
     first_name = serializers.CharField(max_length=100, allow_blank=True)
     last_name = serializers.CharField(max_length=100, allow_blank=True)
@@ -20,17 +19,14 @@ class RUDUserInfoSerializer(serializers.ModelSerializer):
         read_only_fields = ['email']
 
     def update(self, instance, validated_data):
-        user = User.objects.filter(email__iexact=self.instance.email).first()
-        
-        user.first_name = validated_data['first_name']
-        user.last_name = validated_data['last_name']
-        user.telegram_alias = validated_data['telegram_alias']
-        user.save()
-        return user
+        instance.first_name = validated_data['first_name']
+        instance.last_name = validated_data['last_name']
+        instance.telegram_alias = validated_data['telegram_alias']
+        instance.save()
+        return instance
 
 
 class CreateClubSerializer(serializers.ModelSerializer):
-
     title = serializers.CharField(max_length=100, allow_blank=False)
     description = serializers.CharField(allow_blank=True)
 
@@ -39,10 +35,10 @@ class CreateClubSerializer(serializers.ModelSerializer):
         fields = ['title',
                   'description']
         validators = [UniqueTogetherValidator(
-                            queryset=Club.objects.all(),
-                            fields=['title'],
-                            message='There is already a club with such title')
-                      ]
+            queryset=Club.objects.all(),
+            fields=['title'],
+            message='There is already a club with such title')
+        ]
 
     def create(self, validated_data):
         user = self.context['request'].user
@@ -54,25 +50,36 @@ class CreateClubSerializer(serializers.ModelSerializer):
         return club
 
 
-class RetrieveClubsSerializer(serializers.ModelSerializer):
+class RetrieveClubsSerializer(serializers.Serializer):
 
     title = serializers.CharField(allow_blank=False, max_length=100)
-    description = serializers.CharField(allow_blank=True)
-    head_of_the_club = RUDUserInfoSerializer()
-    members = RUDUserInfoSerializer(many=True)
+    description = serializers.CharField(allow_blank=True, required=False)
+    head_of_the_club = RUDUserInfoSerializer(required=False, read_only=True)
+    members = RUDUserInfoSerializer(many=True, required=False, read_only=True)
 
-    class Meta:
-        model = Club
-        fields = ['title',
-                  'description',
-                  'head_of_the_club',
-                  'members']
-        read_only_fields = ['head_of_the_club',
-                            'members']
+    new_title = serializers.CharField(allow_blank=False,
+                                      max_length=100,
+                                      required=False)
+    new_description = serializers.CharField(allow_blank=True, required=False)
+
+    def create(self, validated_data):
+        pass
+
+    def validate_new_title(self, value):
+        obj = Club.objects.filter(title__iexact=value)
+        obj = obj.exclude(title__iexact=self.instance.title)
+        if obj.count():
+            raise serializers.ValidationError('There is already a club with such title')
+        return value
+
+    def update(self, instance, validated_data):
+        instance.title = validated_data['new_title']
+        instance.description = validated_data['new_description']
+        instance.save()
+        return instance
 
 
 class JoinClubSerializer(serializers.ModelSerializer):
-
     title = serializers.CharField(max_length=100, allow_blank=False)
 
     class Meta:
@@ -81,7 +88,7 @@ class JoinClubSerializer(serializers.ModelSerializer):
 
     def validate_title(self, value):
         if not Club.objects.filter(title__iexact=value).count():
-            raise serializers.ValidationError('Title is incorrect')
+            raise serializers.ValidationError('Club title is incorrect')
         return value
 
     def validate(self, attrs):
@@ -93,10 +100,9 @@ class JoinClubSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = self.context['request'].user
-        club = Club.objects.filter(title__iexact=validated_data['title']).first()
-        club.members.add(user)
-        club.save()
-        return club
+        instance.members.add(user)
+        instance.save()
+        return instance
 
 
 class LeaveClubSerializer(serializers.ModelSerializer):
@@ -109,7 +115,7 @@ class LeaveClubSerializer(serializers.ModelSerializer):
 
     def validate_title(self, value):
         if not Club.objects.filter(title__iexact=value).count():
-            raise serializers.ValidationError('Title is incorrect')
+            raise serializers.ValidationError('Club title is incorrect')
         return value
 
     def validate(self, attrs):
@@ -124,40 +130,40 @@ class LeaveClubSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         user = self.context['request'].user
-        club = Club.objects.filter(title__iexact=validated_data['title']).first()
-        club.members.remove(user)
-        club.save()
-        return club
+        instance.members.remove(user)
+        instance.save()
+        return instance
 
 
-class ChangeClubHeaderSerializer(serializers.ModelSerializer):
+class ChangeClubHeaderSerializer(serializers.Serializer):
 
-    title = serializers.CharField(max_length=100, allow_blank=False)
-    head_of_the_club = serializers.EmailField()
+    title = serializers.CharField(max_length=100, allow_blank=False, required=False)
+    new_head_of_the_club = serializers.EmailField(allow_blank=False, required=False)
 
-    class Meta:
-        model = Club
-        fields = ['title',
-                  'head_of_the_club']
+    def create(self, validated_data):
+        pass
 
     def validate_title(self, value):
         if not Club.objects.filter(title__iexact=value).count():
             raise serializers.ValidationError('Title is incorrect')
         return value
 
+    def validate_new_head_of_the_club(self, value):
+        if not User.objects.filter(email__iexact=value).count():
+            raise serializers.ValidationError("New club header's email is incorrect")
+        return value
+
     def validate(self, attrs):
-        print(attrs)
         user = self.context['request'].user
         club = Club.objects.filter(title__iexact=attrs.get('title')).first()
         if club.head_of_the_club != user:
             raise serializers.ValidationError('You are not a club header')
-        if not User.objects.filter(email__iexact=attrs.get('head_of_the_club')).count():
-            raise serializers.ValidationError('New club header email is incorrect')
+        if not club.members.filter(email__iexact=attrs.get('new_head_of_the_club')).count():
+            raise serializers.ValidationError('New club header have to join this club')
         return attrs
 
     def update(self, instance, validated_data):
-        club = Club.objects.filter(title__iexact=validated_data['title']).first()
-        new_club_header = User.objects.filter(email__iexact=validated_data['head_of_the_club']).first()
-        club.head_of_the_club = new_club_header
-        club.save()
-        return club
+        new_club_header = User.objects.filter(email__iexact=validated_data['new_head_of_the_club']).first()
+        instance.head_of_the_club = new_club_header
+        instance.save()
+        return instance
