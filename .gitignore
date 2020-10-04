@@ -7,4 +7,5 @@
 local_settings.py
 media
 .idea
-**/*.sqlite3
+db.sqlite3
+tipps.txt

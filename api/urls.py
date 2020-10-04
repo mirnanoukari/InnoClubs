@@ -26,7 +26,7 @@ urlpatterns = [
     path('user_profile/', views.UserProfileRUDView.as_view(), name='user-profile'),
 
     path('get_clubs/', views.ListClubsView.as_view(), name='clubs-view'),
-    path('get_club/', views.RUDClubView.as_view(), name='club-view'),
+    path('club_profile/', views.RUDClubView.as_view(), name='club-view'),
 
     path('create_club/', views.CreateClubView.as_view(), name='club-create'),
     path('join_club/', views.JoinClubView.as_view(), name='join-club'),
@@ -34,13 +34,3 @@ urlpatterns = [
     path('change_club_header/', views.ChangeClubHeaderView.as_view(), name='change-club-header')
 
 ]
-
-
-"""
-- List of clubs for each user
-- Announcements (Get/Create/Update/Delete)
-- Events/Lessons for each club (Get/Create/Update/Delete)
-- Attendance
-- Student Affairs Office
-- Competitions
-"""

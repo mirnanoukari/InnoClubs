@@ -28,6 +28,7 @@ class SocialLoginView(LoginView):
 
 
 class OutlookLogin(SocialLoginView):
+
     adapter_class = MicrosoftGraphOAuth2Adapter
 
     callback_url = settings.CALLBACK_URL
