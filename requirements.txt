@@ -13,7 +13,7 @@ backoff==1.10.0
 backtrader==1.9.74.123
 beautifulsoup4==4.8.1
 boltons==20.0.0
-bottle==0.12.18
+bottle==0.12.19
 bs4==0.0.1
 certifi==2019.11.28
 cffi==1.12.3
