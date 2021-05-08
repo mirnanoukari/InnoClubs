@@ -34,7 +34,7 @@ django-rest-auth==0.9.5
 djangorestframework==3.11.1
 djangorestframework-jwt==1.11.0
 dnspython==1.16.0
-eventlet==0.25.2
+eventlet==0.31.0
 fake-useragent==0.1.11
 func-timeout==4.3.5
 future==0.17.1
